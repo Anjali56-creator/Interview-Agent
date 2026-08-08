@@ -161,53 +161,90 @@ const validateQuestions = ({ questions, role, difficulty, questionCount }) => {
   });
 };
 
-export async function generateInterviewQuestions({ role, difficulty, interviewType, questionCount }) {
+export async function generateInterviewQuestions({
+  role,
+  difficulty,
+  interviewType,
+  questionCount,
+}) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     throw new Error('Gemini API key is missing.');
   }
 
-  const prompt = buildPrompt({ role, difficulty, interviewType, questionCount });
-
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: prompt }],
-        },
-      ],
-      generationConfig: {
-        temperature: 1,
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 2048,
-        responseMimeType: 'application/json',
-      },
-    }),
+  const prompt = buildPrompt({
+    role,
+    difficulty,
+    interviewType,
+    questionCount,
   });
 
+  const response = await fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          maxOutputTokens: 2048,
+          responseMimeType: 'application/json',
+        },
+      }),
+    }
+  );
+
+  // Read the response body ONLY ONCE
   const raw = await response.text();
 
   if (!response.ok) {
-    throw new Error('Gemini failed to generate a new interview.');
+    console.error('Gemini API error:', response.status, raw);
+
+    throw new Error(
+      `Gemini API error (${response.status}): ${raw}`
+    );
   }
 
   let text = raw;
+
   try {
     const payload = JSON.parse(raw);
-    text = payload?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || raw;
-  } catch {
-    // keep raw text for parsing below
+
+    text =
+      payload?.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text || '')
+        .join('') || raw;
+  } catch (error) {
+    console.error('Could not parse Gemini response:', error);
   }
 
-  const parsed = JSON.parse(stripCodeFences(text));
-  const questions = validateQuestions({ questions: parsed.questions, role, difficulty, questionCount });
+  let parsed;
+
+  try {
+    parsed = JSON.parse(stripCodeFences(text));
+  } catch (error) {
+    console.error('Invalid JSON returned by Gemini:', text);
+
+    throw new Error(
+      'Gemini returned an invalid JSON response.'
+    );
+  }
+
+  const questions = validateQuestions({
+    questions: parsed.questions,
+    role,
+    difficulty,
+    questionCount,
+  });
 
   return questions;
 }
