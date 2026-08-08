@@ -4,7 +4,9 @@ export async function generateQuestions({
   interviewType,
   questionCount,
 }) {
-  const response = await fetch('/api/interview/generate', {
+  const API_URL = import.meta.env.VITE_API_URL;
+
+const response = await fetch(`${API_URL}/api/interview/generate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -68,7 +70,7 @@ export async function evaluateAnswer({
       ? role
       : role?.title || role?.name || '';
 
-  const response = await fetch('/api/interview/evaluate', {
+  const response = (`${API_URL}/api/interview/evaluate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
