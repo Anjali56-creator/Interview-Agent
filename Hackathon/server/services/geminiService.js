@@ -1,101 +1,401 @@
 const roleProfiles = {
   'Software Engineer': {
     category: 'technical',
-    topics: ['algorithms', 'debugging', 'system design', 'testing', 'APIs', 'architecture', 'scalability'],
+    topics: [
+      'algorithms',
+      'debugging',
+      'system design',
+      'testing',
+      'APIs',
+      'architecture',
+      'scalability',
+    ],
   },
+
   'Frontend Developer': {
     category: 'technical',
-    topics: ['React state management', 'component architecture', 'accessibility', 'performance', 'UX', 'rendering'],
+    topics: [
+      'React state management',
+      'component architecture',
+      'accessibility',
+      'performance',
+      'UX',
+      'rendering',
+    ],
   },
+
   'Backend Developer': {
     category: 'technical',
-    topics: ['REST APIs', 'authentication', 'databases', 'caching', 'concurrency', 'security', 'performance'],
+    topics: [
+      'REST APIs',
+      'authentication',
+      'databases',
+      'caching',
+      'concurrency',
+      'security',
+      'performance',
+    ],
   },
+
   'Full Stack Developer': {
     category: 'technical',
-    topics: ['API integration', 'state management', 'deployment', 'authentication', 'databases', 'scalability'],
+    topics: [
+      'API integration',
+      'state management',
+      'deployment',
+      'authentication',
+      'databases',
+      'scalability',
+    ],
   },
+
   'Data Analyst': {
     category: 'technical',
-    topics: ['SQL', 'dashboards', 'trend analysis', 'data quality', 'visualization', 'stakeholders'],
+    topics: [
+      'SQL',
+      'dashboards',
+      'trend analysis',
+      'data quality',
+      'visualization',
+      'stakeholders',
+    ],
   },
+
   'Data Scientist': {
     category: 'technical',
-    topics: ['statistics', 'feature engineering', 'model evaluation', 'experimentation', 'Python', 'metrics'],
+    topics: [
+      'statistics',
+      'feature engineering',
+      'model evaluation',
+      'experimentation',
+      'Python',
+      'metrics',
+    ],
   },
+
   'Machine Learning Engineer': {
     category: 'technical',
-    topics: ['model deployment', 'monitoring', 'feature pipelines', 'ML ops', 'latency', 'optimization'],
+    topics: [
+      'model deployment',
+      'monitoring',
+      'feature pipelines',
+      'ML ops',
+      'latency',
+      'optimization',
+    ],
   },
+
   'DevOps Engineer': {
     category: 'technical',
-    topics: ['CI/CD', 'containers', 'observability', 'automation', 'cloud', 'reliability'],
+    topics: [
+      'CI/CD',
+      'containers',
+      'observability',
+      'automation',
+      'cloud',
+      'reliability',
+    ],
   },
+
   'QA Engineer': {
     category: 'technical',
-    topics: ['test strategy', 'automation', 'regression testing', 'edge cases', 'quality', 'coverage'],
+    topics: [
+      'test strategy',
+      'automation',
+      'regression testing',
+      'edge cases',
+      'quality',
+      'coverage',
+    ],
   },
+
   'Cybersecurity Analyst': {
     category: 'technical',
-    topics: ['threat modeling', 'incident response', 'security controls', 'risk mitigation', 'authentication', 'logging'],
+    topics: [
+      'threat modeling',
+      'incident response',
+      'security controls',
+      'risk mitigation',
+      'authentication',
+      'logging',
+    ],
   },
+
   'UI/UX Designer': {
     category: 'non-technical',
-    topics: ['user research', 'interaction design', 'design systems', 'prototyping', 'feedback', 'accessibility'],
+    topics: [
+      'user research',
+      'interaction design',
+      'design systems',
+      'prototyping',
+      'feedback',
+      'accessibility',
+    ],
   },
+
   'Graphic Designer': {
     category: 'non-technical',
-    topics: ['visual hierarchy', 'brand consistency', 'creative direction', 'typography', 'layout', 'identity'],
+    topics: [
+      'visual hierarchy',
+      'brand consistency',
+      'creative direction',
+      'typography',
+      'layout',
+      'identity',
+    ],
   },
+
   'Product Manager': {
     category: 'non-technical',
-    topics: ['strategy', 'prioritization', 'stakeholders', 'metrics', 'tradeoffs', 'roadmaps'],
+    topics: [
+      'strategy',
+      'prioritization',
+      'stakeholders',
+      'metrics',
+      'tradeoffs',
+      'roadmaps',
+    ],
   },
+
   'Business Analyst': {
     category: 'non-technical',
-    topics: ['requirements gathering', 'process mapping', 'gap analysis', 'documentation', 'stakeholders', 'workflows'],
+    topics: [
+      'requirements gathering',
+      'process mapping',
+      'gap analysis',
+      'documentation',
+      'stakeholders',
+      'workflows',
+    ],
   },
+
   HR: {
     category: 'non-technical',
-    topics: ['behavioral interviewing', 'employee experience', 'policy', 'conflict resolution', 'people ops', 'communication'],
+    topics: [
+      'behavioral interviewing',
+      'employee experience',
+      'policy',
+      'conflict resolution',
+      'people ops',
+      'communication',
+    ],
   },
 };
 
 const difficultyGuidance = {
-  Beginner: 'Focus on fundamentals, clear definitions, and simple examples.',
-  Intermediate: 'Focus on practical scenarios, implementation tradeoffs, and applied judgment.',
-  Advanced: 'Focus on architecture, scale, tradeoffs, risk, and production-level thinking.',
+  Beginner:
+    'Focus on fundamentals, clear definitions, and simple examples.',
+
+  Intermediate:
+    'Focus on practical scenarios, implementation tradeoffs, and applied judgment.',
+
+  Advanced:
+    'Focus on architecture, scale, tradeoffs, risk, and production-level thinking.',
 };
 
 const interviewTypeGuidance = {
-  Technical: 'Ask mostly technical questions, with practical depth where appropriate.',
-  Behavioral: 'Ask questions that explore collaboration, communication, ownership, and decision making.',
-  Mixed: 'Mix conceptual, practical, scenario-based, and behavioral questions so the interview feels realistic.',
+  Technical:
+    'Ask mostly technical questions, with practical depth where appropriate.',
+
+  Behavioral:
+    'Ask questions that explore collaboration, communication, ownership, and decision making.',
+
+  Mixed:
+    'Mix conceptual, practical, scenario-based, and behavioral questions so the interview feels realistic.',
 };
 
-const buildPrompt = ({ role, difficulty, interviewType, questionCount }) => {
-  const profile = roleProfiles[role] || { category: 'technical', topics: ['core concepts', 'practical scenarios', 'tradeoffs'] };
-  const topics = profile.topics.join(', ');
+const stripCodeFences = (value) =>
+  String(value)
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
+const clampScore = (value) => {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    Math.min(100, Math.round(number))
+  );
+};
+
+const normalizeStringList = (items) => {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((item) =>
+      String(item || '').trim()
+    )
+    .filter(Boolean)
+    .slice(0, 5);
+};
+
+/*
+|--------------------------------------------------------------------------
+| GROQ HELPER
+|--------------------------------------------------------------------------
+*/
+
+async function callGroq(prompt, systemMessage) {
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      'Groq API key is missing.'
+    );
+  }
+
+  const response = await fetch(
+    'https://api.groq.com/openai/v1/chat/completions',
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+
+      body: JSON.stringify({
+        model: 'openai/gpt-oss-20b',
+
+        messages: [
+          {
+            role: 'system',
+            content: systemMessage,
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+
+        temperature: 0.4,
+
+        max_completion_tokens: 1500,
+
+        response_format: {
+          type: 'json_object',
+        },
+      }),
+    }
+  );
+
+  const raw = await response.text();
+
+  console.log(
+    'Groq status:',
+    response.status
+  );
+
+  if (!response.ok) {
+    console.error(
+      'Groq API error:',
+      raw
+    );
+
+    throw new Error(
+      `Groq API error (${response.status}): ${raw}`
+    );
+  }
+
+  let payload;
+
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    throw new Error(
+      'Groq returned invalid API JSON.'
+    );
+  }
+
+  const text =
+    payload?.choices?.[0]?.message?.content;
+
+  if (!text) {
+    throw new Error(
+      'Groq returned an empty response.'
+    );
+  }
+
+  try {
+    return JSON.parse(
+      stripCodeFences(text)
+    );
+  } catch {
+    console.error(
+      'Invalid JSON from Groq:',
+      text
+    );
+
+    throw new Error(
+      'Groq returned invalid JSON.'
+    );
+  }
+}
+
+/*
+|--------------------------------------------------------------------------
+| QUESTION GENERATION
+|--------------------------------------------------------------------------
+*/
+
+const buildQuestionPrompt = ({
+  role,
+  difficulty,
+  interviewType,
+  questionCount,
+}) => {
+  const profile =
+    roleProfiles[role] || {
+      category: 'technical',
+      topics: [
+        'core concepts',
+        'practical scenarios',
+        'tradeoffs',
+      ],
+    };
 
   return `
-Generate ${questionCount} unique interview questions for a ${role} interview at ${difficulty} difficulty.
+Generate exactly ${questionCount} unique interview questions for a ${role} interview.
 
+Difficulty: ${difficulty}
 Interview type: ${interviewType}
-
 Role category: ${profile.category}
-Relevant topic areas: ${topics}
+
+Relevant topic areas:
+${profile.topics.join(', ')}
+
+Difficulty guidance:
+${
+  difficultyGuidance[difficulty] ||
+  difficultyGuidance.Intermediate
+}
+
+Interview guidance:
+${
+  interviewTypeGuidance[interviewType] ||
+  interviewTypeGuidance.Mixed
+}
 
 Requirements:
 - Questions must be relevant to ${role}.
 - Match ${difficulty} difficulty.
-- ${difficultyGuidance[difficulty] || difficultyGuidance.Intermediate}
-- ${interviewTypeGuidance[interviewType] || interviewTypeGuidance.Mixed}
-- Cover multiple different topic areas.
+- Cover different topic areas.
 - Do not repeat questions.
-- Do not generate generic questions unrelated to the role.
-- Each question should test a different concept.
-- Questions should resemble real software and career interviews.
-- Return ONLY valid JSON in this exact shape:
+- Do not simply reword another question.
+- Avoid generic filler questions.
+- Questions should resemble realistic interviews.
+- Return exactly ${questionCount} questions.
+- Return ONLY valid JSON.
+
+Return:
+
 {
   "questions": [
     {
@@ -110,55 +410,102 @@ Requirements:
 `;
 };
 
-const stripCodeFences = (value) => value.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-
-const normalizeQuestion = (question, index, role, difficulty) => {
-  if (!question || typeof question.question !== 'string' || !question.question.trim()) {
-    throw new Error('Gemini returned an invalid question payload.');
+const normalizeQuestion = (
+  question,
+  index,
+  role,
+  difficulty
+) => {
+  if (
+    !question ||
+    typeof question.question !== 'string' ||
+    !question.question.trim()
+  ) {
+    throw new Error(
+      'Groq returned an invalid question.'
+    );
   }
 
-  const normalizedType = ['technical', 'behavioral', 'mixed'].includes(String(question.type).toLowerCase())
-    ? String(question.type).toLowerCase()
-    : 'mixed';
+  const type =
+    String(
+      question.type || 'mixed'
+    ).toLowerCase();
 
   return {
-    id: question.id || `q${index + 1}`,
-    question: question.question.trim(),
-    topic: String(question.topic || 'General').trim(),
-    type: normalizedType,
+    id:
+      question.id ||
+      `q${index + 1}`,
+
+    question:
+      question.question.trim(),
+
+    topic:
+      String(
+        question.topic || 'General'
+      ).trim(),
+
+    type: [
+      'technical',
+      'behavioral',
+      'mixed',
+    ].includes(type)
+      ? type
+      : 'mixed',
+
     difficulty,
     role,
   };
 };
 
-const validateQuestions = ({ questions, role, difficulty, questionCount }) => {
+const validateQuestions = ({
+  questions,
+  role,
+  difficulty,
+  questionCount,
+}) => {
   if (!Array.isArray(questions)) {
-    throw new Error('Gemini response did not contain a valid questions array.');
+    throw new Error(
+      'Groq response did not contain a questions array.'
+    );
   }
 
-  if (questions.length !== questionCount) {
-    throw new Error('Gemini returned the wrong number of questions.');
+  if (
+    questions.length !== questionCount
+  ) {
+    throw new Error(
+      `Groq returned ${questions.length} questions instead of ${questionCount}.`
+    );
   }
 
   const seen = new Set();
-  const roleHints = (roleProfiles[role]?.topics || []).map((item) => item.toLowerCase());
 
-  return questions.map((item, index) => {
-    const normalized = normalizeQuestion(item, index, role, difficulty);
+  return questions.map(
+    (item, index) => {
+      const normalized =
+        normalizeQuestion(
+          item,
+          index,
+          role,
+          difficulty
+        );
 
-    const duplicateKey = normalized.question.toLowerCase();
-    if (seen.has(duplicateKey)) {
-      throw new Error('Gemini returned duplicate questions.');
+      const key =
+        normalized.question
+          .toLowerCase()
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      if (seen.has(key)) {
+        throw new Error(
+          'Groq returned duplicate questions.'
+        );
+      }
+
+      seen.add(key);
+
+      return normalized;
     }
-    seen.add(duplicateKey);
-
-    const belongsToRole = roleHints.some((hint) => duplicateKey.includes(hint) || normalized.topic.toLowerCase().includes(hint));
-    if (!belongsToRole) {
-      throw new Error('Gemini returned questions that do not match the requested role.');
-    }
-
-    return normalized;
-  });
+  );
 };
 
 export async function generateInterviewQuestions({
@@ -167,84 +514,178 @@ export async function generateInterviewQuestions({
   interviewType,
   questionCount,
 }) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const prompt =
+    buildQuestionPrompt({
+      role,
+      difficulty,
+      interviewType,
+      questionCount,
+    });
 
-  if (!apiKey) {
-    throw new Error('Gemini API key is missing.');
-  }
-
-  const prompt = buildPrompt({
-    role,
-    difficulty,
-    interviewType,
-    questionCount,
-  });
-
-  const response = await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: prompt }],
-          },
-        ],
-        generationConfig: {
-          maxOutputTokens: 2048,
-          responseMimeType: 'application/json',
-        },
-      }),
-    }
-  );
-
-  // Read the response body ONLY ONCE
-  const raw = await response.text();
-
-  if (!response.ok) {
-    console.error('Gemini API error:', response.status, raw);
-
-    throw new Error(
-      `Gemini API error (${response.status}): ${raw}`
+  const parsed =
+    await callGroq(
+      prompt,
+      'You are an expert interview-question generator. Return only valid JSON.'
     );
-  }
 
-  let text = raw;
-
-  try {
-    const payload = JSON.parse(raw);
-
-    text =
-      payload?.candidates?.[0]?.content?.parts
-        ?.map((part) => part.text || '')
-        .join('') || raw;
-  } catch (error) {
-    console.error('Could not parse Gemini response:', error);
-  }
-
-  let parsed;
-
-  try {
-    parsed = JSON.parse(stripCodeFences(text));
-  } catch (error) {
-    console.error('Invalid JSON returned by Gemini:', text);
-
-    throw new Error(
-      'Gemini returned an invalid JSON response.'
-    );
-  }
-
-  const questions = validateQuestions({
-    questions: parsed.questions,
+  return validateQuestions({
+    questions:
+      parsed.questions,
     role,
     difficulty,
     questionCount,
   });
+};
 
-  return questions;
+/*
+|--------------------------------------------------------------------------
+| ANSWER EVALUATION
+|--------------------------------------------------------------------------
+*/
+
+const buildEvaluationPrompt = ({
+  role,
+  difficulty,
+  question,
+  answer,
+}) => `
+Evaluate this candidate's interview answer.
+
+Role:
+${role}
+
+Difficulty:
+${difficulty}
+
+Interview Question:
+${question}
+
+Candidate Answer:
+${answer}
+
+Evaluate the answer fairly and realistically.
+
+Consider:
+- Technical correctness
+- Relevance
+- Clarity
+- Depth
+- Communication
+- Completeness
+- Problem solving
+
+Return ONLY valid JSON in this exact structure:
+
+{
+  "score": 0,
+  "technicalAccuracy": 0,
+  "relevance": 0,
+  "clarity": 0,
+  "depth": 0,
+  "communication": 0,
+  "completeness": 0,
+  "strengths": [],
+  "improvements": [],
+  "suggestion": "",
+  "idealAnswer": ""
+}
+
+Rules:
+- Every score must be an integer from 0 to 100.
+- score is the overall answer score.
+- strengths must contain 2-4 specific points.
+- improvements must contain 2-4 actionable points.
+- suggestion must be personalized to this answer.
+- idealAnswer should be a strong example answer.
+- Do not invent claims about the candidate.
+- Return JSON only.
+`;
+
+export async function evaluateInterviewAnswer({
+  role,
+  difficulty,
+  question,
+  answer,
+}) {
+  if (!question?.trim()) {
+    throw new Error(
+      'Interview question is missing.'
+    );
+  }
+
+  if (!answer?.trim()) {
+    throw new Error(
+      'Candidate answer is missing.'
+    );
+  }
+
+  const prompt =
+    buildEvaluationPrompt({
+      role,
+      difficulty,
+      question,
+      answer,
+    });
+
+  const evaluation =
+    await callGroq(
+      prompt,
+      'You are an expert technical interviewer evaluating candidate answers. Return only valid JSON.'
+    );
+
+  return {
+    score: clampScore(
+      evaluation.score
+    ),
+
+    technicalAccuracy:
+      clampScore(
+        evaluation.technicalAccuracy
+      ),
+
+    relevance:
+      clampScore(
+        evaluation.relevance
+      ),
+
+    clarity:
+      clampScore(
+        evaluation.clarity
+      ),
+
+    depth:
+      clampScore(
+        evaluation.depth
+      ),
+
+    communication:
+      clampScore(
+        evaluation.communication
+      ),
+
+    completeness:
+      clampScore(
+        evaluation.completeness
+      ),
+
+    strengths:
+      normalizeStringList(
+        evaluation.strengths
+      ),
+
+    improvements:
+      normalizeStringList(
+        evaluation.improvements
+      ),
+
+    suggestion:
+      String(
+        evaluation.suggestion || ''
+      ).trim(),
+
+    idealAnswer:
+      String(
+        evaluation.idealAnswer || ''
+      ).trim(),
+  };
 }

@@ -27,6 +27,8 @@ export default function InterviewPage({
   canGoPrevious,
   canGoNext,
   validationMessage,
+  isEvaluating,
+  isSubmitConfirmOpen,
   questionId,
 }) {
   const speechRecognition = useSpeechRecognition({
@@ -121,6 +123,8 @@ export default function InterviewPage({
           onClearAnswer={handleClearAnswer}
           voiceError={speechRecognition.error}
           voiceHint="Speak naturally. Click the microphone when you're finished."
+          isSubmitting={isEvaluating}
+          isConfirmationOpen={isSubmitConfirmOpen}
         />
 
         {evaluation && <EvaluationCard evaluation={evaluation} onContinue={onContinue} finalQuestion={currentIndex === totalQuestions - 1} />}

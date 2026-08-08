@@ -1,6 +1,9 @@
-import evaluateAnswer from '../utils/evaluateAnswer.js';
-
-export async function generateQuestions({ role, difficulty, interviewType, questionCount }) {
+export async function generateQuestions({
+  role,
+  difficulty,
+  interviewType,
+  questionCount,
+}) {
   const response = await fetch('/api/interview/generate', {
     method: 'POST',
     headers: {
@@ -15,6 +18,7 @@ export async function generateQuestions({ role, difficulty, interviewType, quest
   });
 
   let payload = null;
+
   try {
     payload = await response.json();
   } catch {
@@ -22,50 +26,199 @@ export async function generateQuestions({ role, difficulty, interviewType, quest
   }
 
   if (!response.ok) {
-    const message = payload?.error || payload?.message || 'Unable to generate a new interview right now.';
+    const message =
+      payload?.error ||
+      payload?.message ||
+      'Unable to generate a new interview right now.';
+
     throw new Error(message);
   }
 
   if (!payload || !Array.isArray(payload.questions)) {
-    throw new Error('Unable to generate a new interview right now.');
+    throw new Error(
+      'Unable to generate a new interview right now.'
+    );
   }
 
   return payload.questions;
 }
 
-export { evaluateAnswer };
 
-export function calculateFinalSummary({ role, difficulty, questions, evaluations }) {
+/**
+ * Evaluate the candidate's answer using the Gemini backend.
+ */
+export async function evaluateAnswer({
+  role,
+  difficulty,
+  question,
+  answer,
+}) {
+  if (!question || !question.trim()) {
+    throw new Error('Interview question is missing.');
+  }
+
+  if (!answer || !answer.trim()) {
+    throw new Error(
+      'Please provide an answer before submitting.'
+    );
+  }
+
+  const roleName =
+    typeof role === 'string'
+      ? role
+      : role?.title || role?.name || '';
+
+  const response = await fetch('/api/interview/evaluate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      role: roleName,
+      difficulty,
+      question,
+      answer,
+    }),
+  });
+
+  let payload = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      payload?.error ||
+      payload?.message ||
+      'Unable to evaluate your answer right now.';
+
+    throw new Error(message);
+  }
+
+  if (!payload?.evaluation) {
+    throw new Error(
+      'The interview evaluation response was invalid.'
+    );
+  }
+
+  return payload.evaluation;
+}
+
+
+/**
+ * Calculate the final interview summary
+ * from all individual Gemini evaluations.
+ */
+export function calculateFinalSummary({
+  role,
+  difficulty,
+  questions,
+  evaluations,
+}) {
   const totalQuestions = questions.length;
-  const safeEvaluations = Array.from({ length: totalQuestions }, (_, index) => evaluations[index] || null);
-  const completed = safeEvaluations.filter(Boolean);
-  const divisor = Math.max(1, totalQuestions);
 
-  const average = (key) => Math.round(safeEvaluations.reduce((sum, item) => sum + (item?.[key] || 0), 0) / divisor);
+  const completed = evaluations.filter(Boolean);
+
+  const divisor = Math.max(1, completed.length);
+
+  const average = (key) =>
+    Math.round(
+      completed.reduce(
+        (sum, item) =>
+          sum + (Number(item?.[key]) || 0),
+        0
+      ) / divisor
+    );
 
   const breakdown = {
-    technicalKnowledge: average('accuracy'),
+    technicalKnowledge: average('technicalAccuracy'),
     communication: average('communication'),
-    problemSolving: average('score'),
+    problemSolving: average('depth'),
     answerRelevance: average('relevance'),
     completeness: average('completeness'),
   };
 
-  const score = Math.max(0, Math.min(100, Math.round((breakdown.technicalKnowledge + breakdown.communication + breakdown.problemSolving + breakdown.answerRelevance + breakdown.completeness) / 5)));
+  const overallScore =
+    completed.length > 0
+      ? Math.round(
+          completed.reduce(
+            (sum, item) =>
+              sum + (Number(item?.score) || 0),
+            0
+          ) / completed.length
+        )
+      : 0;
 
-  const strengths = Array.from(new Set(completed.flatMap((item) => item.strengths).slice(0, 3)));
-  const improvements = Array.from(new Set(completed.flatMap((item) => item.improvements).slice(0, 3)));
+  const strengths = Array.from(
+    new Set(
+      completed
+        .flatMap((item) =>
+          Array.isArray(item?.strengths)
+            ? item.strengths
+            : []
+        )
+        .filter(Boolean)
+    )
+  ).slice(0, 5);
+
+  const improvements = Array.from(
+    new Set(
+      completed
+        .flatMap((item) =>
+          Array.isArray(item?.improvements)
+            ? item.improvements
+            : []
+        )
+        .filter(Boolean)
+    )
+  ).slice(0, 5);
+
+  const suggestions = completed
+    .map((item) => item?.suggestion)
+    .filter(Boolean);
+
+  const roleName =
+    typeof role === 'string'
+      ? role
+      : role?.title || role?.name || 'Interview';
 
   return {
-    role: role.title,
+    role: roleName,
     difficulty,
     totalQuestions,
-    overallScore: score,
+
+    overallScore: Math.max(
+      0,
+      Math.min(100, overallScore)
+    ),
+
     breakdown,
-    strengths: strengths.length > 0 ? strengths : ['Good technical fundamentals', 'Clear explanations', 'Strong problem-solving approach'],
-    areasToImprove: improvements.length > 0 ? improvements : ['Add more detail', 'Tighten structure', 'Use stronger examples'],
-    recommendation: score >= 80
-      ? 'Keep pushing on advanced scenarios and practice concise, high-signal answers.'
-      : improvements[0] || 'Focus on clearer structure and more role-specific detail in your answers.',
+
+    strengths:
+      strengths.length > 0
+        ? strengths
+        : [
+            'Good technical fundamentals',
+            'Clear explanations',
+            'Strong problem-solving approach',
+          ],
+
+    areasToImprove:
+      improvements.length > 0
+        ? improvements
+        : [
+            'Add more detail',
+            'Tighten answer structure',
+            'Use stronger examples',
+          ],
+
+    recommendation:
+      suggestions[0] ||
+      (overallScore >= 80
+        ? 'Keep pushing on advanced scenarios and practice concise, high-signal answers.'
+        : 'Focus on clearer structure and more role-specific detail in your answers.'),
   };
 }
