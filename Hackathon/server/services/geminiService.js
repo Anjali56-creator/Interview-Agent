@@ -277,7 +277,7 @@ async function callGroq(prompt, systemMessage) {
 
         temperature: 0.4,
 
-        max_completion_tokens: 1500,
+        max_completion_tokens: 3000,
 
         response_format: {
           type: 'json_object',
