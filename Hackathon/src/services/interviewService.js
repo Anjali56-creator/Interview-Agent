@@ -1,23 +1,47 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
+if (!API_URL) {
+  throw new Error('VITE_API_URL is not configured.');
+}
+
+/**
+ * Generate interview questions.
+ */
 export async function generateQuestions({
   role,
   difficulty,
   interviewType,
   questionCount,
 }) {
-  const API_URL = import.meta.env.VITE_API_URL;
+  // Normalize role whether the caller passes:
+  // "Product Manager"
+  // or { title: "Product Manager", ... }
+  const roleName =
+    typeof role === 'string'
+      ? role
+      : role?.title || role?.name || '';
 
-const response = await fetch(`${API_URL}/api/interview/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      role,
-      difficulty,
-      interviewType,
-      questionCount,
-    }),
-  });
+  if (!roleName) {
+    throw new Error('Interview role is missing.');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/interview/generate`,
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+      },
+
+      body: JSON.stringify({
+        role: roleName,
+        difficulty,
+        interviewType,
+        questionCount,
+      }),
+    }
+  );
 
   let payload = null;
 
@@ -36,7 +60,10 @@ const response = await fetch(`${API_URL}/api/interview/generate`, {
     throw new Error(message);
   }
 
-  if (!payload || !Array.isArray(payload.questions)) {
+  if (
+    !payload ||
+    !Array.isArray(payload.questions)
+  ) {
     throw new Error(
       'Unable to generate a new interview right now.'
     );
@@ -45,9 +72,8 @@ const response = await fetch(`${API_URL}/api/interview/generate`, {
   return payload.questions;
 }
 
-
 /**
- * Evaluate the candidate's answer using the Gemini backend.
+ * Evaluate the candidate's answer using the backend.
  */
 export async function evaluateAnswer({
   role,
@@ -56,7 +82,9 @@ export async function evaluateAnswer({
   answer,
 }) {
   if (!question || !question.trim()) {
-    throw new Error('Interview question is missing.');
+    throw new Error(
+      'Interview question is missing.'
+    );
   }
 
   if (!answer || !answer.trim()) {
@@ -70,18 +98,27 @@ export async function evaluateAnswer({
       ? role
       : role?.title || role?.name || '';
 
-  const response = (`${API_URL}/api/interview/evaluate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      role: roleName,
-      difficulty,
-      question,
-      answer,
-    }),
-  });
+  if (!roleName) {
+    throw new Error('Interview role is missing.');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/interview/evaluate`,
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+      },
+
+      body: JSON.stringify({
+        role: roleName,
+        difficulty,
+        question,
+        answer,
+      }),
+    }
+  );
 
   let payload = null;
 
@@ -109,10 +146,9 @@ export async function evaluateAnswer({
   return payload.evaluation;
 }
 
-
 /**
  * Calculate the final interview summary
- * from all individual Gemini evaluations.
+ * from all individual evaluations.
  */
 export function calculateFinalSummary({
   role,
@@ -124,7 +160,10 @@ export function calculateFinalSummary({
 
   const completed = evaluations.filter(Boolean);
 
-  const divisor = Math.max(1, completed.length);
+  const divisor = Math.max(
+    1,
+    completed.length
+  );
 
   const average = (key) =>
     Math.round(
@@ -136,11 +175,20 @@ export function calculateFinalSummary({
     );
 
   const breakdown = {
-    technicalKnowledge: average('technicalAccuracy'),
-    communication: average('communication'),
-    problemSolving: average('depth'),
-    answerRelevance: average('relevance'),
-    completeness: average('completeness'),
+    technicalKnowledge:
+      average('technicalAccuracy'),
+
+    communication:
+      average('communication'),
+
+    problemSolving:
+      average('depth'),
+
+    answerRelevance:
+      average('relevance'),
+
+    completeness:
+      average('completeness'),
   };
 
   const overallScore =
@@ -185,11 +233,15 @@ export function calculateFinalSummary({
   const roleName =
     typeof role === 'string'
       ? role
-      : role?.title || role?.name || 'Interview';
+      : role?.title ||
+        role?.name ||
+        'Interview';
 
   return {
     role: roleName,
+
     difficulty,
+
     totalQuestions,
 
     overallScore: Math.max(
