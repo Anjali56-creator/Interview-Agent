@@ -44,11 +44,22 @@ export default function InterviewPage({
     return 'idle';
   }, [speechRecognition.error, speechRecognition.isListening, speechRecognition.isSupported, speechRecognition.transcript]);
 
-  useEffect(() => {
-    speechRecognition.stopListening();
-    speechRecognition.resetTranscript();
+ useEffect(() => {
+  speechRecognition.stopListening();
+  speechRecognition.resetTranscript();
+  speechSynthesis.stop();
+
+  if (!currentQuestion) return;
+
+  const timer = window.setTimeout(() => {
+    speechSynthesis.speak(currentQuestion);
+  }, 300);
+
+  return () => {
+    window.clearTimeout(timer);
     speechSynthesis.stop();
-  }, [questionId]);
+  };
+}, [questionId]);
 
   useEffect(() => () => {
     speechRecognition.stopListening();
